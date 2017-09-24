@@ -54,6 +54,7 @@ public class JConfig {
             
         } catch (IOException ex) {
             System.err.println(ex.toString());
+            createConfig();
         }
 
         
