@@ -26,44 +26,58 @@ public class JConfig {
     
     public static final String CFG=".cfg";
     
-    public String homeDirectory;
-    public Path config;
-    public String SCofnig;
-    public List<String> arguments;
-    public HashMap<String, String> hm;
+    private String homeDirectory;
+    private Path config;
+    private String SCofnig;
+    private List<String> arguments;
+    private HashMap<String, String> hm;
     
     public JConfig(String SConfig) {
         SConfig = SConfig + CFG;
         config = Paths.get(SConfig);
         hm = new HashMap<String, String>();
-   
+
         try {
-            arguments = Files.readAllLines(Paths.get(SConfig), StandardCharsets.UTF_8);
-            
-            System.out.println("Loading config "+ config.toFile().getAbsolutePath());
-            System.out.println("Can read: "+config.toFile().canRead()+" can write: "+config.toFile().canWrite());
-            
-            for (String argument : arguments) {
-                System.out.println(" "+argument);
-                String name = argument.substring(0, argument.indexOf("="));
-                String value = argument.substring(argument.indexOf("=")+1, argument.indexOf(";"));
-                //System.out.println(name+": "+value);
-                hm.put(name, value);
-            }
-            
-            
+            init(SConfig);
         } catch (IOException ex) {
             System.err.println(ex.toString());
-            createConfig();
+            createConfig(SConfig);
         }
-
-        
     }
 
+    private void init(String SConfig) throws IOException {
+
+        arguments = Files.readAllLines(Paths.get(SConfig), StandardCharsets.UTF_8);
+
+       // System.err.println("Loading config " + config.toFile().getAbsolutePath());
+       // System.err.println("Can read: " + config.toFile().canRead() + " can write: " + config.toFile().canWrite());
+
+        for (String argument : arguments) {
+           // System.err.println(" " + argument);
+            String name = argument.substring(0, argument.indexOf("="));
+            String value = argument.substring(argument.indexOf("=") + 1, argument.indexOf(";"));
+            // System.err.println(name+": "+value);
+            hm.put(name, value);
+        }
+
+    }
+
+    private boolean createConfig(String SCongif) {
+        try {
+            Files.createFile(config);
+           // System.err.println("Config created: " + config.toFile().getAbsolutePath());
+            init(SCongif);
+        } catch (IOException ex) {
+            System.err.println(ex.toString());
+            return false;
+        }
+        return true;
+    }
+    
     private boolean createConfig() {
         try {
             Files.createFile(config);
-            System.out.println("Config created: "+config.toFile().getAbsolutePath());
+           // System.err.println("Config created: " + config.toFile().getAbsolutePath());
         } catch (IOException ex) {
             System.err.println(ex.toString());
             return false;
@@ -76,7 +90,13 @@ public class JConfig {
         return hm;
     }
     
-    public int getConfigValue(String name, int i){
+    /**
+     *
+     * @param name name of the variable
+     * @param convertion always true
+     * @return int
+     */
+    public int getConfigValue(String name, boolean convertion){
         try {
             return  Integer.parseInt(hm.get(name));
         } catch (NumberFormatException e) {
@@ -85,14 +105,20 @@ public class JConfig {
         
     }
     
-    public String getConfigValue(String name, String s){
+    public String getConfigValue(String name){
+        if(!hm.containsKey(name)){
+            setConfigValue(name, "");
+        }
         return  hm.get(name);
     }
     
     
     public void setConfigValue(String name, String value){
         hm.put(name, value);
-        if(saveConfig()) System.out.println("Config saved: "+config.toFile().getAbsolutePath());
+        if(saveConfig()) System.err.println("Config saved: "+config.toFile().getAbsolutePath());
+    }
+    public boolean isConfigEmpty(){
+        return arguments.isEmpty();
     }
     
     private boolean saveConfig() {
@@ -104,7 +130,7 @@ public class JConfig {
             for (Map.Entry<String, String> entry : hm.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                System.out.println("Writing: "+key + "=" + value + ";");
+               // System.err.println("Writing: "+key + "=" + value + ";");
                 pw.println(key + "=" + value + ";");
             }
             pw.close();
