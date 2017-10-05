@@ -32,7 +32,7 @@ public class JConfig {
     private List<String> arguments;
     private HashMap<String, String> hm;
     
-    public JConfig(String SConfig) {
+   public JConfig(String SConfig) {
         SConfig = SConfig + CFG;
         config = Paths.get(SConfig);
         hm = new HashMap<String, String>();
@@ -84,6 +84,16 @@ public class JConfig {
         }
         return true;
     }
+    private boolean createConfig(Path new_config) {
+        try {
+            Files.createFile(new_config);
+           // System.err.println("Config created: " + config.toFile().getAbsolutePath());
+        } catch (IOException ex) {
+            System.err.println(ex.toString());
+            return false;
+        }
+        return true;
+    }
     
     
     public HashMap getConfig(){
@@ -122,7 +132,7 @@ public class JConfig {
     }
     
     private boolean saveConfig() {
-
+        
         try {
             Files.deleteIfExists(config);
             createConfig();
@@ -140,6 +150,32 @@ public class JConfig {
         }
 
         return true;
+    }
+    
+    public boolean saveConfig(String path) {
+        Path new_config=Paths.get(path);
+        try {
+            Files.deleteIfExists(new_config);
+            createConfig();
+            PrintWriter pw = new PrintWriter(new FileOutputStream(new_config.toFile()));
+            for (Map.Entry<String, String> entry : hm.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+               // System.err.println("Writing: "+key + "=" + value + ";");
+                pw.println(key + "=" + value + ";");
+            }
+            pw.close();
+        } catch (IOException ex) {
+            System.err.println(ex.toString());
+            return false;
+        }
+
+        return true;
+    }
+
+
+    public Path getConfigPath() {
+        return config;
     }
 
 }
